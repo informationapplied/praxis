@@ -1,0 +1,14 @@
+{
+  "name": "informationapplied",
+  "owner": {
+    "name": "Information Applied",
+    "email": "glenn@informationapplied.com"
+  },
+  "plugins": [
+    {
+      "name": "praxis",
+      "source": "./praxis",
+      "description": "A portable way of working with Claude Code: an issue-driven lifecycle with worktrees, review-before-PR, and PRD-linked requirements, applied to code, docs, and decisions alike."
+    }
+  ]
+}
