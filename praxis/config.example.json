@@ -1,0 +1,12 @@
+{
+  "tracker": "github-projects",
+  "board": "https://github.com/users/OWNER/projects/N",
+  "statuses": ["Suggested", "Scoping", "Approved", "In progress", "In review", "Done", "Declined"],
+  "prd": {
+    "path": "docs/prd.md",
+    "idScheme": "SECTION-NNN"
+  },
+  "sizing": ["XS", "S", "M", "L", "XL"],
+  "devflow": false,
+  "branchPattern": "issue-{n}-{slug}"
+}
