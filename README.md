@@ -30,11 +30,6 @@ No credentials required — the marketplace is public.
 Commit `.claude/praxis.json` with your board URL, PRD path, and options. Without it, praxis runs a
 sensible default (plain GitHub issues, no board, manual worktree). See `praxis/config.example.json`.
 
-## Design
-
-- [Design (rev 2)](docs/design/2026-07-09-workflow-plugin-design.md)
-- [Rev 1 review findings](docs/design/2026-07-10-rev1-review-findings.md)
-
 ## License
 
 MIT.
