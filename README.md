@@ -4,35 +4,26 @@ Information Applied's Claude Code plugin marketplace.
 
 Marketplace name: `ia-plugins`
 
-## Plugins
+> **Status:** design approved (rev 2), not yet implemented. This repo is currently private
+> and will be flipped public once the first plugin is built. See
+> [docs/design](docs/design/2026-07-09-workflow-plugin-design.md).
+
+## Planned plugins
 
 | Plugin | Description |
 |---|---|
-| `ia-workflow` | The house development workflow: issue-driven lifecycle, PRD requirement conventions, project board discipline, and coding rules. |
+| _(name TBD — see spec)_ | A portable, issue-driven development workflow: lifecycle, worktrees, review-before-PR, PRD-linked requirements, and board discipline. Firm/project specifics come from local config, not the plugin. |
 
-## Install
-
-Once per machine:
-
-```bash
-gh auth login                             # repo scope, to clone this private marketplace
-export GITHUB_TOKEN=…                     # in your shell profile; enables background auto-update
-```
-
-Then, inside Claude Code:
+## Install (once public)
 
 ```
 /plugin marketplace add informationapplied/claude-plugins
-/plugin install ia-workflow@ia-plugins
+/plugin install <plugin>@ia-plugins
 ```
 
-Without `GITHUB_TOKEN` the plugin still works, but Claude Code cannot refresh a private marketplace
-in the background and your copy will go stale silently.
+No credentials required — the marketplace is public.
 
 ## Design
 
-See [docs/design/2026-07-09-ia-workflow-plugin-design.md](docs/design/2026-07-09-ia-workflow-plugin-design.md).
-
-## Status
-
-Design approved. Not yet implemented.
+- [Design (rev 2)](docs/design/2026-07-09-workflow-plugin-design.md)
+- [Rev 1 review findings](docs/design/2026-07-10-rev1-review-findings.md)
