@@ -1,4 +1,4 @@
-# A public Claude Code workflow plugin: portable dev process across machines and teams
+# praxis: a portable way of working with Claude, across machines and teams
 
 **Date:** 2026-07-09 (rev. 2026-07-10)
 **Status:** Approved design (rev 2), not yet implemented
@@ -6,78 +6,87 @@
 
 ## Revision note
 
-Rev 1 designed a *private* marketplace plus a vendored copy of the rules committed into
-every repo, to reach web sessions. Two independent reviews (a docs fact-check and an
-adversarial design review — findings recorded in
-[`2026-07-10-rev1-review-findings.md`](2026-07-10-rev1-review-findings.md)) found the
+Rev 1 designed a *private* marketplace plus a vendored copy of the rules committed into every repo,
+to reach web sessions. Two independent reviews (a docs fact-check and an adversarial design review —
+findings in [`2026-07-10-rev1-review-findings.md`](2026-07-10-rev1-review-findings.md)) found the
 vendoring premise was factually wrong and the design was contaminating client repos.
 
-Rev 2 resolves this by going **public and generic**. A public marketplace needs no
-credentials, so web and local sessions converge on a single mechanism — install the
-plugin — which deletes vendoring, the deduplication guard, the CI drift check, and the
-`GITHUB_TOKEN` requirement outright. See "What rev 2 removes" below.
+Rev 2 goes **public and generic**. A public marketplace needs no credentials, so web and local
+sessions converge on a single mechanism — install the plugin — which deletes vendoring, the
+deduplication guard, the CI drift check, and the `GITHUB_TOKEN` requirement outright.
+
+Naming/shape resolved during rev 2: this is not a narrow "dev workflow" but *the way Glenn works
+with Claude across everything* — code, docs, strategy, decisions. It follows the `superpowers`
+model: **one richly-skilled plugin named after a concept**, growing by skills rather than a shelf of
+separate plugins. The concept is **praxis** — turning intent into disciplined practice.
+
+## Identity
+
+| Knob | Value | Notes |
+|---|---|---|
+| GitHub repo (the visible brand) | `informationapplied/praxis` | What users type: `/plugin marketplace add informationapplied/praxis` |
+| Marketplace `name` | `informationapplied` | The `@suffix` on installs |
+| Plugin `name` | `praxis` | Install target: `praxis@informationapplied` |
+
+`informationapplied` (a GitHub org) sits in the same slot as `obra` in `obra/superpowers`; the clean
+read comes from the repo path, not the marketplace's internal name.
 
 ## Problem
 
-The house development workflow — an issue-driven lifecycle with worktrees, review-before-PR,
-PRD-linked requirements, and board discipline — currently lives in one repo's `CLAUDE.md` and
-one machine's `~/.claude/settings.json`. It should apply anywhere Glenn or his team runs Claude
-Code, on every surface (CLI on multiple Macs, desktop app, IDE extension, and claude.ai/code
-web), and it should be adoptable by teammates without forking.
+The house way of working — an issue-driven lifecycle with worktrees, review-before-PR, PRD-linked
+requirements, and board discipline, plus whatever other practices accrete — currently lives in one
+repo's `CLAUDE.md` and one machine's `~/.claude/settings.json`. It should apply anywhere Glenn or his
+team runs Claude Code, on every surface (CLI on multiple Macs, desktop, IDE, and claude.ai/code web),
+and be adoptable by teammates without forking.
 
-Two hard constraints shaped rev 1 and still hold:
+Two hard constraints:
 
 1. A plugin cannot ship permissions — its `settings.json` honors only `agent` and
    `subagentStatusLine`. Permissions live in user/project/local settings, which merge.
 2. Nothing in `~/.claude` reaches a web session. Only the cloned repo and any plugin the repo
-   *declares* (installed from a marketplace at session start) travel there.
+   *declares* (installed from a marketplace at session start) travel there — and a **public**
+   marketplace installs there with no credentials.
 
-Rev 1 mishandled constraint 2 by vendoring. Rev 2 handles it by making the plugin public, so the
-repo-declared plugin installs on web with no auth.
+## Design principles
 
-## Design principles (rev 2)
-
-- **Generic core, local specifics.** The public plugin contains a *portable* workflow. Anything
-  Information Applied-specific — the GitHub project board URL, the devflow MCP integration, the
-  PRD-ID scheme — is *read* from local configuration, never *baked into* the plugin. This is both
-  what makes it publishable and what keeps it out of client repos.
-- **Nudge, not dump.** The full lifecycle is not injected into every session. A short SessionStart
-  nudge states that the repo uses the workflow and points at the skill; the heavy process loads
-  on demand via a skill. This is how `superpowers` actually works.
-- **Own repos only.** The workflow is configured only in repos Information Applied/Glenn owns.
-  Client repos (e.g. EliLillyCo) receive no committed `.claude` workflow config. With a public
-  marketplace this is a professional-courtesy rule, not a confidentiality risk — nothing secret
-  would leak — but it stands: a client's repo is their process choice, and configuring it would
-  prompt their employees to install a plugin that isn't their workflow.
+- **Generic core, local specifics.** The public `praxis` plugin contains a *portable* method.
+  Information Applied-specific details — the GitHub project board URL, the devflow MCP integration,
+  the PRD-ID scheme — are *read* from local config, never baked into the plugin. This is what makes
+  it publishable and what keeps it out of client repos.
+- **Nudge, not dump.** A short SessionStart nudge says the repo uses praxis and points at the skill;
+  the heavy process loads on demand via a skill. This is how `superpowers` works.
+- **Own repos only.** praxis is configured only in repos Information Applied/Glenn owns. Client repos
+  (e.g. EliLillyCo) get no committed `.claude` config. With a public marketplace this is
+  professional courtesy, not a confidentiality risk, but it stands.
 
 ## Architecture
 
-One public repository, one plugin to start.
-
-### `informationapplied/claude-plugins` (public) — the marketplace
+One public repository, one flagship plugin that grows by skills.
 
 ```
-LICENSE                                  # MIT
-.claude-plugin/marketplace.json          # marketplace name: ia-plugins
-<plugin-name>/                           # see "Naming" — final name TBD
-  .claude-plugin/plugin.json             # semver versioned
-  hooks/hooks.json                       # SessionStart matcher: startup|clear  (NOT compact)
-  hooks/session-start.sh                 # emits a SHORT nudge; exits 0 unconditionally
-  rules/workflow.md                      # the full portable lifecycle (loaded by the skill, not the hook)
-  skills/
-    workflow/SKILL.md                    # on-demand: the full lifecycle, adapted to local config
-    scope-issue/SKILL.md                 # lifecycle step: PRD IDs, sizing, board move
-    finish-issue/SKILL.md                # lifecycle step: merge, close, board → done
-  commands/
-    standup.md                           # the "what's next" board briefing
-  config.example.json                    # the shape of per-repo workflow config
-README.md                                # what it is, install, how to configure
-docs/design/                             # this spec + review findings
+informationapplied/praxis  (public once built)
+  LICENSE                                  # MIT
+  .claude-plugin/marketplace.json          # name: informationapplied
+  praxis/
+    .claude-plugin/plugin.json             # semver versioned
+    hooks/hooks.json                       # SessionStart matcher: startup|clear  (NOT compact)
+    hooks/session-start.sh                 # short nudge; exits 0 unconditionally
+    rules/workflow.md                      # the full portable lifecycle (loaded by the skill)
+    skills/
+      workflow/SKILL.md                    # on-demand: the lifecycle, adapted to local config
+      scope-issue/SKILL.md                 # step: PRD IDs, sizing, board move
+      finish-issue/SKILL.md                # step: merge, close, board → done
+      …                                    # room for more practices over time
+    commands/
+      standup.md                           # the "what's next" board briefing
+    config.example.json                    # the shape of per-repo config
+  README.md
+  docs/design/                             # this spec + review findings
 ```
 
-### Configuration: how the generic plugin learns your specifics
+### Configuration: how generic praxis learns your specifics
 
-A repo Glenn owns commits `.claude/workflow.json` (name TBD), e.g.:
+A repo Glenn owns commits `.claude/praxis.json`:
 
 ```json
 {
@@ -91,124 +100,98 @@ A repo Glenn owns commits `.claude/workflow.json` (name TBD), e.g.:
 }
 ```
 
-The `workflow` skill reads this and adapts its instructions. If the file is absent, the skill
-runs in a sensible default mode: plain GitHub issues, no board, manual worktree, `devflow: false`.
-This is the mechanism that keeps IA specifics out of the public plugin **and** out of client
-repos, and it is what makes the plugin genuinely reusable by strangers.
+The `workflow` skill reads this and adapts. Absent the file, it runs a sensible default: plain
+GitHub issues, no board, manual worktree, `devflow: false`. This keeps IA specifics out of the
+public plugin *and* out of client repos, and makes praxis reusable by strangers.
 
 ## Data flow: one mechanism, every surface
 
-| Surface | How the plugin arrives | How rules arrive |
+| Surface | How praxis arrives | How rules arrive |
 |---|---|---|
 | CLI / desktop / IDE | User installs once, or `~/.claude/settings.json` `enabledPlugins` | Hook nudge at startup; `workflow` skill on demand |
-| Web (claude.ai/code) | Repo `.claude/settings.json` declares the public marketplace + `enabledPlugins`; user prompted to install on trust — no credentials needed because the marketplace is public | Same hook + skill, running in the cloud session |
+| Web (claude.ai/code) | Repo `.claude/settings.json` declares `informationapplied/praxis` + `enabledPlugins: praxis@informationapplied`; user prompted to install on trust — no credentials, marketplace is public | Same hook + skill, in the cloud session |
 
-There is no second code path for web. That is the whole payoff of going public: the thing that
-was impossible for a private marketplace (install in a cloud session with no creds) is trivial for
-a public one.
+There is no second code path for web. That is the payoff of going public.
 
-## devflow: conditional, unchanged
+## devflow: conditional
 
 The `devflow` MCP server stays out of scope as a distributed artifact. The `workflow` skill uses
-`start_work_session`/`end_work_session` **only when `config.devflow === true` and the server is
-connected**; otherwise it instructs the manual path (create the worktree, update the board by
-hand, skip activity logging). No user is ever told to call a tool they don't have.
+`start_work_session`/`end_work_session` only when `config.devflow === true` and the server is
+connected; otherwise it instructs the manual path (worktree by hand, board by hand, skip activity
+logging). No user is told to call a tool they don't have.
 
 ## Permissions (unchanged reasoning)
 
-- **Team denies** (the destructive-command list: `rm -rf`, `rm -r`, `sudo rm`, force-push both
-  spellings, `git clean -f`/`-fd`, `git branch -D`, `chmod -R 777`) go in each owned repo's
-  committed `.claude/settings.json`.
-- **Personal allows** (npm, python, swift, brew, gh, …) stay in `~/.claude/settings.json`, the
-  weakest layer.
-- Because `allow`/`deny` merge and a deny at any level wins, teammates extend without being able
-  to loosen a team deny. This falls out of precedence; no code implements it.
-- Known limit (review L3): the guarantee holds only for the file as committed; a contributor can
-  edit the committed settings on their own branch. Only server-managed settings would prevent
-  that, and that is out of scope.
+- **Team denies** (`rm -rf`, `rm -r`, `sudo rm`, force-push both spellings, `git clean -f`/`-fd`,
+  `git branch -D`, `chmod -R 777`) go in each owned repo's committed `.claude/settings.json`.
+- **Personal allows** stay in `~/.claude/settings.json`, the weakest layer.
+- `allow`/`deny` merge and a deny at any level wins, so teammates extend without loosening a team
+  deny. Falls out of precedence; no code implements it.
+- Known limit (review L3): holds only for the file as committed; a contributor can edit committed
+  settings on a branch. Only server-managed settings would prevent that — out of scope.
 
 ## Syncing Glenn's own machines
 
 `glennking/dotfiles` (private) holds `claude/settings.json` and an idempotent `install.sh` that
-symlinks exactly one file to `~/.claude/settings.json` (personal allows + `enabledPlugins` listing
-the public plugin). No `GITHUB_TOKEN` is needed now — the marketplace is public. `~/.claude.json`
-(per-project history, MCP auth) is never committed. Memory (`~/.claude/projects/*/memory/`) stays
-machine-local: it is personal context, its directory name is derived from an absolute checkout
-path, and regenerating it is cheap.
+symlinks one file to `~/.claude/settings.json` (personal allows + `enabledPlugins: praxis@informationapplied`).
+No `GITHUB_TOKEN` — the marketplace is public. `~/.claude.json` is never committed. Memory
+(`~/.claude/projects/*/memory/`) stays machine-local.
 
 ## Versioning and rollback
 
-The plugin is semver-versioned with a changelog and Git release tags — standard OSS practice, and
-the fix for rev 1's "a push governs everyone instantly" finding. Background auto-update pulls the
-marketplace's default branch, so risky changes land on a `next` branch and merge to `main` only
-after use; a bad change is rolled back by reverting on `main`. There is a single source of truth
-now (the installed plugin), so rev 1's HEAD-vs-installed divergence cannot occur.
+`praxis` is semver-versioned with a changelog and Git release tags. Risky changes land on a `next`
+branch and merge to `main` only after use; a bad change is rolled back by reverting `main`. Single
+source of truth (the installed plugin), so rev 1's HEAD-vs-installed divergence cannot occur.
 
-## What rev 2 removes (and why it's safe)
+## What rev 2 removes
 
 | Rev 1 mechanism | Removed because |
 |---|---|
-| Vendored `.claude/rules/workflow.md` per repo | Public plugin installs on web directly; vendoring was redundant on owned repos and contaminating on client repos |
+| Vendored `.claude/rules/workflow.md` per repo | Public plugin installs on web directly |
 | `make sync-rules` | Nothing to sync; rules ship in the plugin |
-| CI drift check via `gh api` on a private repo | No vendored copy to drift; also the cross-private-repo token never worked |
-| SessionStart dedup guard | Rules come from exactly one place (the hook/skill); no double-load possible |
-| `GITHUB_TOKEN` in `~/.zshrc` | Public marketplace needs no auth for install or background update |
-| Full-lifecycle always-on injection | Replaced by a short nudge + on-demand skill; `compact` dropped from the matcher so nothing is re-injected after compaction |
+| CI drift check via `gh api` on a private repo | No vendored copy to drift; token never worked |
+| SessionStart dedup guard | Rules come from one place; no double-load possible |
+| `GITHUB_TOKEN` in `~/.zshrc` | Public marketplace needs no auth |
+| Full-lifecycle always-on injection | Replaced by a nudge + on-demand skill; `compact` dropped |
 
 ## Error handling
 
 | Failure | Guard |
 |---|---|
-| `session-start.sh` errors or plugin mid-update | Script exits 0 and prints nothing; invoked as `bash session-start.sh` so a lost +x bit doesn't matter; a broken hook cannot break a session |
-| Teammate never installs the plugin | Repo `.claude/settings.json` prompts on trust; public marketplace means the prompt actually succeeds |
-| `config.json` absent or malformed | Skill falls back to generic default mode; malformed config surfaces a clear message, not a crash |
-| `gh` not installed | Manual-worktree path in the skill still works; only board automation degrades |
+| `session-start.sh` errors / plugin mid-update | Exits 0, prints nothing; invoked as `bash session-start.sh` so a lost +x bit is harmless; a broken hook can't break a session |
+| Teammate never installs praxis | Repo `.claude/settings.json` prompts on trust; public marketplace makes the prompt succeed |
+| `praxis.json` absent/malformed | Skill falls back to default mode; malformed config surfaces a clear message, not a crash |
+| `gh` not installed | Manual path in the skill still works; only board automation degrades |
 
 ## Testing
 
-1. **Fresh machine, plugin installed, no repo config.** Start a session in any repo: the nudge
-   appears; invoking the `workflow` skill runs generic default mode.
-2. **Owned repo with `.claude/workflow.json`.** The skill adapts to the configured board, PRD
-   path, and `devflow` flag.
-3. **Web session on an owned repo declaring the marketplace.** Trust prompt → install succeeds
-   with no credentials → nudge and skill behave identically to local.
-4. **Subdirectory launch.** Start Claude from a package subdir: nudge fires once, skill resolves
-   config from the project root (anchored to `$CLAUDE_PROJECT_DIR`, not cwd — rev 1's H1 bug).
+1. Fresh machine, praxis installed, no repo config → nudge appears; `workflow` skill runs default mode.
+2. Owned repo with `.claude/praxis.json` → skill adapts to board, PRD path, `devflow` flag.
+3. Web session on an owned repo declaring the marketplace → trust prompt → install succeeds with no
+   credentials → nudge and skill behave identically to local.
+4. Subdirectory launch → nudge fires once; skill resolves config from `$CLAUDE_PROJECT_DIR`, not cwd
+   (rev 1's H1 bug).
 5. `session-start.sh` exits 0 and emits nothing when `rules/` is missing.
-
-## Naming (decide during rewrite)
-
-Marketplace stays `ia-plugins` (an author/firm namespace, like a GitHub handle — fine for a public
-repo that may host more than one plugin). Plugin name candidates:
-
-- `issue-driven-dev` — descriptive; reads as a general tool, not one firm's config. **Recommended.**
-- `shipflow` — short and memorable, but vaguer about what it does.
-- `ia-workflow` — clear provenance, but reads as an internal tool, which undercuts "publishable."
-
-Recommendation: `issue-driven-dev`, with `ia-` reserved as the marketplace namespace.
 
 ## First application: lilly_lumen
 
 `lilly_lumen/CLAUDE.md` is migrated. The nine-step lifecycle, principles, escape hatches, and board
-conventions become plugin-owned (generic) plus a committed `.claude/workflow.json` (the lilly_lumen
+conventions become praxis-owned (generic) plus a committed `.claude/praxis.json` (lilly_lumen
 specifics: board #22, `docs/prd.md`, `devflow: true`). `CLAUDE.md` keeps only what is truly
-project-local — the directory table and the pre-commit command — and the unfilled template stubs
-(`src`/`tests` tech column, empty Common Commands, empty Architecture, empty Key Patterns) are
+project-local — the directory table and the pre-commit command — and the unfilled template stubs are
 deleted.
 
 ## Out of scope
 
 - Packaging/distributing the devflow MCP server.
-- Server-managed (enterprise) settings. Still the only way to *enforce* consistency and prevent a
-  contributor editing committed settings (L3), but it replaces rather than merges (the rejected
-  "locked" model) and needs org-admin work. Reconsider if IA wants enforcement later; note that for
-  IA's *own* org Glenn is admin, so it remains a viable future option for owned repos.
+- Server-managed (enterprise) settings. Still the only way to *enforce* consistency (L3), but it
+  replaces rather than merges and needs org-admin work. Viable future option for IA's own org, where
+  Glenn is admin.
 - Syncing `~/.claude/projects/*/memory/` across machines.
-- Additional plugins in `ia-plugins`. The marketplace can hold more; this ships one.
+- A second plugin in the marketplace. The repo can hold more; praxis ships as one rich plugin first.
 
 ## Publish gate
 
-The repo stays **private** until the plugin is built and Glenn approves flipping it public.
-Going public is a hard-to-reverse outward action; "public in principle" is not authorization to
-publish a design doc today. Flip to public at implementation time, with the LICENSE and README in
+The repo stays **private** until the plugin is built and Glenn approves flipping it public. Going
+public is a hard-to-reverse outward action; flip at implementation time, with LICENSE and README in
 place.
