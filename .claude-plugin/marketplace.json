@@ -1,5 +1,6 @@
 {
   "name": "informationapplied",
+  "description": "Information Applied's Claude Code marketplace: portable ways of working with Claude, starting with praxis.",
   "owner": {
     "name": "Information Applied",
     "email": "glenn@informationapplied.com"
