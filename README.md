@@ -7,8 +7,9 @@ review-before-PR, PRD-linked requirements, and board discipline — applied to c
 and decisions alike. The firm/project specifics come from local config, not the plugin, so the
 method itself is generic and reusable.
 
-> **Status:** v0.1.0 — the plugin is built (SessionStart hook, `workflow` skill, `/praxis-check`).
-> This repo is still private and will be flipped public once the skill set has settled.
+> **Status:** v0.1.0 — the plugin is built: a SessionStart hook that nudges only in repos with a
+> `.claude/praxis.json`, and the `workflow` skill it points to. This repo is still private and will
+> be flipped public once the skill set has settled.
 
 ## Identity
 
