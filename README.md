@@ -7,9 +7,8 @@ review-before-PR, PRD-linked requirements, and board discipline — applied to c
 and decisions alike. The firm/project specifics come from local config, not the plugin, so the
 method itself is generic and reusable.
 
-> **Status:** design approved (rev 2), not yet implemented. This repo is currently private and will
-> be flipped public once the plugin is built. See
-> [docs/design](docs/design/2026-07-09-workflow-plugin-design.md).
+> **Status:** v0.1.0 — the plugin is built (SessionStart hook, `workflow` skill, `/praxis-check`).
+> This repo is still private and will be flipped public once the skill set has settled.
 
 ## Identity
 
