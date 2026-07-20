@@ -1,0 +1,6 @@
+{
+  "tracker": "github-issues",
+  "sizing": ["XS", "S", "M", "L", "XL"],
+  "devflow": false,
+  "branchPattern": "issue-{n}-{slug}"
+}
