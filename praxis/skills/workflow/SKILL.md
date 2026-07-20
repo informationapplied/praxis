@@ -82,7 +82,9 @@ Push the branch and open a PR whose body tells the story: a summary of changes, 
 - Squash merge to the main branch.
 - **If `devflow: true`:** call `end_work_session` with the `activity_id` from step 3 —
   it completes the activity, removes labels, and updates status.
-- Remove the worktree and delete the local branch. Pull the main branch.
+- Remove the worktree **first**, then delete the local branch — a branch still checked
+  out in a worktree cannot be deleted (`gh pr merge --delete-branch` fails on it, and so
+  does a manual delete). Pull the main branch.
 - Close the issue explicitly with a summary of what was done.
 - If `board`: move the issue to the done status.
 
