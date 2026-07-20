@@ -87,7 +87,12 @@ Push the branch and open a PR whose body tells the story: a summary of changes, 
   --delete-branch` fails on it, and so does a manual delete). Use `-d`, never `-D`: `-d`
   refuses to delete a branch that isn't merged, so right after the squash-merge it
   doubles as a check that the merge really landed; `-D` forces the delete and would
-  discard unmerged commits silently. Pull the main branch.
+  discard unmerged commits silently.
+- Pull the main branch, then **verify it advanced to the merge commit** — don't assume
+  the pull succeeded. `git pull --ff-only` can abort (printing a terse "Aborting") and
+  leave main at the old commit; a common cause is an untracked file in the main clone
+  blocking the fast-forward. Confirm with `git log -1` (or that the merged change is now
+  present); if it aborted, resolve the blocker and pull again before closing the issue.
 - Close the issue explicitly with a summary of what was done.
 - If `board`: move the issue to the done status.
 
