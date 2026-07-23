@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "informationapplied": {
+      "source": {
+        "source": "github",
+        "repo": "informationapplied/praxis"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "praxis@informationapplied": true
+  }
+}
