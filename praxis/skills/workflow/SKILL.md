@@ -48,6 +48,10 @@ item. Present it and confirm before starting.
 - If `board`: move to the approved status when scoping is complete.
 
 ### 3. Start work
+- **Sync main first** (both paths below). Before the worktree is created, `git fetch
+  origin` and `git pull --ff-only` on main, and verify it advanced — so the branch starts
+  from current main, not a stale local copy. A stale base starts the work behind and
+  invites conflicts at merge.
 - **If `devflow: true`** and the devflow MCP server is connected: call
   `start_work_session` — it sets status to in-progress, creates the worktree + branch,
   logs activity start, adds the in-progress label, and returns an `activity_id`. **Save
@@ -107,8 +111,9 @@ Push the branch and open a PR whose body tells the story: a summary of changes, 
 
 ## Escape hatches
 
-**Quick work without a worktree** (docs, process, config): skip the worktree. If
-`devflow: true`, bracket it with `log_activity_start` / `log_activity_complete`;
+**Quick work without a worktree** (docs, process, config): skip the worktree, but still
+sync main first (`git fetch` + `git pull --ff-only`) so the commit lands on current main.
+If `devflow: true`, bracket it with `log_activity_start` / `log_activity_complete`;
 otherwise just do it and commit.
 
 **Unplanned fixes discovered mid-work:** don't fix inline — it muddies the current
@@ -122,6 +127,7 @@ branch — it inflates the diff and mixes concerns. File a maintenance issue (de
 priority) after the feature merges, and work it on its own branch.
 
 ## Key principles
+- Start from current main — always sync main before branching or committing, never from a stale base.
 - Review before PR, not after — catch bugs before they're visible.
 - The PR tells the story — review findings and test results matter as much as the diff.
 - Docs before close — architecture docs reflect the current state before an issue closes.
