@@ -30,6 +30,22 @@ No credentials required — the marketplace is public.
 Commit `.claude/praxis.json` with your board URL, PRD path, and options. Without it, praxis runs a
 sensible default (plain GitHub issues, no board, manual worktree). See `praxis/config.example.json`.
 
+To make the plugin **travel with the repo** — so a fresh clone or a web session installs it without
+a manual step — also commit a `.claude/settings.json` that declares the marketplace and enables the
+plugin. Opening the repo then prompts once to trust-and-install:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "informationapplied": { "source": { "source": "github", "repo": "informationapplied/praxis" } }
+  },
+  "enabledPlugins": { "praxis@informationapplied": true }
+}
+```
+
+This repo declares itself that way. While the marketplace is private the install uses your `gh`
+credentials; once public it needs none.
+
 ## License
 
 MIT.
