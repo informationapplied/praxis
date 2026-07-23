@@ -85,9 +85,18 @@ Push the branch and open a PR whose body tells the story: a summary of changes, 
 - Remove the worktree **first**, then delete the local branch with `git branch -d` (not
   `-D`) — a branch still checked out in a worktree cannot be deleted (`gh pr merge
   --delete-branch` fails on it, and so does a manual delete). Use `-d`, never `-D`: `-d`
-  refuses to delete a branch that isn't merged, so right after the squash-merge it
-  doubles as a check that the merge really landed; `-D` forces the delete and would
-  discard unmerged commits silently.
+  refuses to delete a branch with unmerged work, while `-D` forces the delete and would
+  discard unmerged commits silently. After a squash merge `-d` still *succeeds* but
+  prints a harmless `merged to origin/... but not yet merged to HEAD` note — the squash
+  commit on main isn't the branch tip, so the branch is merged to its own upstream ref
+  but not an ancestor of main. That is expected, not a warning to act on.
+- Delete the **remote** branch too — `git push origin --delete <branch>` (`gh pr merge
+  --delete-branch` does this, but skips it when the earlier local delete fails). Before
+  deleting any leftover branch, **do not trust `git branch --merged`** to tell you it is
+  safe: because a squash merge replays the content as a new commit, the branch tip is
+  never an ancestor of main and `--merged` reports a false negative. Confirm disposability
+  instead by the PR's merged state (`gh pr view <n> --json state`) or that the branch's
+  content is already on main.
 - Pull the main branch, then **verify it advanced to the merge commit** — don't assume
   the pull succeeded. `git pull --ff-only` can abort (printing a terse "Aborting") and
   leave main at the old commit; a common cause is an untracked file in the main clone
