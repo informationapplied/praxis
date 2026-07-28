@@ -8,15 +8,14 @@ and decisions alike. The firm/project specifics come from local config, not the 
 method itself is generic and reusable.
 
 > **Status:** v0.1.0 — the plugin is built: a SessionStart hook that nudges only in repos with a
-> `.claude/praxis.json`, and the `workflow` skill it points to. This repo is still private and will
-> be flipped public once the skill set has settled.
+> `.claude/praxis.json`, and the `workflow` skill it points to. The skill set will grow from here.
 
 ## Identity
 
 - Marketplace: `informationapplied` (this repo, `informationapplied/praxis`)
 - Plugin: `praxis`
 
-## Install (once public)
+## Install
 
 ```
 /plugin marketplace add informationapplied/praxis
@@ -43,8 +42,7 @@ plugin. Opening the repo then prompts once to trust-and-install:
 }
 ```
 
-This repo declares itself that way. While the marketplace is private the install uses your `gh`
-credentials; once public it needs none.
+This repo declares itself that way.
 
 ## License
 
