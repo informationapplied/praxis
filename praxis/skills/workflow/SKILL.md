@@ -67,7 +67,8 @@ review fixes, after test fixes — not one batched commit. Reference the issue n
 
 ### 5. Self-review (before the PR, not after)
 Review the full diff (`git diff <base>..HEAD`). Check for bugs, missing edge cases,
-circular imports, fields not threaded through every layer, and lint errors. Fix findings
+circular imports, fields not threaded through every layer, lint errors, and hard-coded
+absolute paths (anything machine- or user-specific, e.g. `/Users/<name>/...`). Fix findings
 in **separate** commits — don't amend — so the review trail survives.
 
 ### 6. Update docs
@@ -133,5 +134,9 @@ priority) after the feature merges, and work it on its own branch.
 - Docs before close — architecture docs reflect the current state before an issue closes.
 - One issue at a time — finish the lifecycle before starting the next.
 - Every change has an issue — even unplanned fixes and maintenance get tracked.
+- Paths are portable — never commit hard-coded absolute or machine-specific paths in
+  configs, scripts, or code. Use relative paths from the repo root, or a variable the
+  environment provides (`$CLAUDE_PROJECT_DIR`, `${CLAUDE_PLUGIN_ROOT}`). An absolute
+  path works for its author and breaks for every other user, worktree, and CI run.
 - Don't mix concerns — feature branches do features; maintenance branches do cleanup.
 - Worktrees over branches — each issue gets its own directory; no stashing, no lost context.
