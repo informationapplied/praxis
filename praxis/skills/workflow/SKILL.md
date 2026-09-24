@@ -34,10 +34,13 @@ Not every issue needs every step — bugs, docs, and small fixes move quickly. S
 ceremony to the change.
 
 ### 1. Find the next issue
-Query the `tracker` (and `board`, if configured) for the highest-priority unstarted
-item **whose dependencies are all met** — an issue you would immediately be blocked on
-is not the next issue. Take one that is well enough defined to deliver on its own: if it
-does not say what done looks like, scope it (step 2) before starting it, or pick another.
+Query the `tracker` (and `board`, if configured) for the highest-priority unstarted item
+**whose dependencies are all met** — an issue you would immediately be blocked on is not
+the next issue. With a `board`, take from the status step 2 approves into: that is where
+takeable work sits, and anything earlier has not been scoped yet.
+
+Take one that is well enough defined to deliver on its own. If it does not say what done
+looks like, scope it (step 2) before starting it, or pick another.
 
 Claim it by assigning yourself and moving it to the in-progress status. If you are acting
 on someone's behalf, assign them. Assign before you start, not when you finish, so the
@@ -145,8 +148,9 @@ abrupt end costs one step, not the whole session. This matters more than any war
 signal: nothing reliably tells you that you are about to be cut off.
 
 **When you stop before the work is deliverable:** update the comment, unassign yourself,
-and move the issue back to the ready status. Leave the branch pushed — it is the real
-record of the work, and the next worker should read it rather than trust prose.
+and move the issue back to the status it was takeable in — the one step 2 approves into,
+not an earlier one, or the work silently leaves the pool. Leave the branch pushed: it is
+the real record, and the next worker should read it rather than trust prose.
 
 **Picking up someone else's work:** the branch is authoritative; the handoff comment is
 orientation. Treat anything past the last commit as lost. If an issue is assigned to a
@@ -182,7 +186,7 @@ priority) after the feature merges, and work it on its own branch.
 - Docs before close — architecture docs reflect the current state before an issue closes.
 - One issue at a time — finish the lifecycle before starting the next.
 - Take only unblocked work — assign yourself when you start, not when you finish.
-- Never leave an issue assigned and silent — the handoff comment stays current, or the issue goes back to ready.
+- Never leave an issue assigned and silent — the handoff comment stays current, or the issue goes back to the takeable status.
 - Every change has an issue — even unplanned fixes and maintenance get tracked.
 - Paths are portable — never commit hard-coded absolute or machine-specific paths in
   configs, scripts, or code. Use relative paths from the repo root, or a variable the
