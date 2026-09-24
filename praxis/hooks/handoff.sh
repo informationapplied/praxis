@@ -33,18 +33,17 @@ PROJECT="${CLAUDE_PROJECT_DIR:-${cwd:-$PWD}}"
 
 # Opt-in gate. A worktree sits beside the repo, so check the git root too.
 git_root=$(git -C "$PROJECT" rev-parse --show-toplevel 2>/dev/null) || exit 0
-[ -f "$PROJECT/.claude/praxis.json" ] || [ -f "$git_root/.claude/praxis.json" ] || exit 0
+cfg=""
+for c in "$PROJECT/.claude/praxis.json" "$git_root/.claude/praxis.json"; do
+  [ -f "$c" ] && { cfg="$c"; break; }
+done
+[ -n "$cfg" ] || exit 0
 
 command -v gh >/dev/null 2>&1 || exit 0
 
 cd "$git_root" 2>/dev/null || exit 0
 
-# --- which issue is this branch working? -------------------------------------
-# branchPattern is repo-configurable, so don't parse it: take the first number
-# in the branch name. Covers issue-12-slug, 12-slug, feature/12-slug, unit/12.
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
-issue=$(printf '%s' "$branch" | grep -oE '[0-9]+' | head -1)
-[ -n "$issue" ] || exit 0
 
 # --- is there unhanded-off work? ---------------------------------------------
 base=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null)
@@ -70,6 +69,42 @@ fi
 last_commit=$(TZ=UTC git log -1 --format=%cd --date=format:'%Y%m%d%H%M%S' 2>/dev/null) || exit 0
 [ -n "$last_commit" ] || exit 0
 last_commit_h=$(TZ=UTC git log -1 --format=%cd --date=format:'%Y-%m-%d %H:%M UTC' 2>/dev/null)
+
+# --- which issue is this branch working? -------------------------------------
+# Never guess from digits in the branch name. Under a branchPattern like
+# `unit/{unit-id}`, `unit/U02-3` would yield 2 — a different, live issue — and
+# SessionEnd would post a handoff comment on it. Resolve from something that
+# actually names the issue, and stay silent when nothing does.
+issue=""
+
+# 1. The branch's open PR and what it closes: the most direct statement of intent.
+issue=$(gh pr view --json closingIssuesReferences \
+        --jq '[.closingIssuesReferences[].number] | first // empty' 2>/dev/null) || issue=""
+
+# 2. Before a PR exists, a closing trailer on a commit in this branch.
+if [ -z "$issue" ]; then
+  range="HEAD"
+  [ -n "${fork:-}" ] && range="$fork..HEAD"
+  issue=$(git log "$range" --format=%B 2>/dev/null \
+          | grep -oiE '(close[sd]?|fix(e[sd])?|resolve[sd]?) +#[0-9]+' \
+          | grep -oE '[0-9]+' | head -1) || issue=""
+fi
+
+# 3. Otherwise only when branchPattern actually declares an issue number.
+if [ -z "$issue" ]; then
+  pattern=$(jq -r '.branchPattern // empty' "$cfg" 2>/dev/null)
+  case "$pattern" in
+    *'{n}'*)
+      rx=$(printf '%s' "$pattern" \
+           | sed -e 's/[][\.^$*+?(){}|\\]/\\&/g' -e 's/\\{n\\}/([0-9]+)/' -e 's/\\{[a-z-]*\\}/.*/g')
+      issue=$(printf '%s' "$branch" | sed -nE "s|^${rx}$|\1|p")
+      ;;
+  esac
+fi
+
+# No reliable link means no action. A wrong issue number is worse than silence:
+# it blocks turns over the wrong work and comments on someone else's issue.
+[ -n "$issue" ] || exit 0
 
 # --- latest handoff comment on the issue -------------------------------------
 # updated_at, not created_at: the worker edits one comment in place.

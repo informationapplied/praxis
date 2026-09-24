@@ -134,11 +134,25 @@ recording where it got to.
 
 **Keep one handoff comment current.** While an issue is assigned to you, maintain a
 single comment on it, edited in place rather than re-posted. Start it with the line
-`<!-- praxis:handoff -->` so tooling can find it. It says:
+`<!-- praxis:handoff -->` so tooling can find it, then a line identifying you:
+
+```
+<!-- praxis:handoff -->
+worker: <id> · <service> · branch <branch> · head <sha> · <UTC timestamp>
+```
+
+The identity line matters more than it looks. The assignee field cannot carry it —
+several workers may run under one account, and an agent acting for a person assigns
+that person — so without it "who holds this, and when were they last alive?" has no
+answer, and neither "is this stalled?" nor "did I write this?" can be decided.
+
+Then the substance:
 
 - what is done and committed
 - what is in progress, and where you left it
 - what you would do next
+- the last time you ran the acceptance or test command, and its verbatim result
+  (or that you did not run it)
 - anything you learned that the diff does not show — a dead end, a surprising
   constraint, a decision and why
 
@@ -154,8 +168,21 @@ the real record, and the next worker should read it rather than trust prose.
 
 **Picking up someone else's work:** the branch is authoritative; the handoff comment is
 orientation. Treat anything past the last commit as lost. If an issue is assigned to a
-worker that has plainly stopped, unassign them and take it — the branch protects the
-work, so there is nothing to negotiate.
+worker that has plainly stopped — the identity line and the branch head both older than
+the work would take — unassign them and take it.
+
+Run the acceptance command before adding to an inherited branch. The handoff is prose
+written by the worker that produced the work, asserting what is done; running the command
+is the only thing that checks it.
+
+An inherited branch can be wrong rather than merely unfinished, and building on a wrong
+one is the most expensive way to fail. You may discard it and restart from the base —
+record in the handoff comment what you discarded and why, so the next reader does not
+resurrect it.
+
+Add your own identity line when you take over; do not overwrite the previous worker's.
+The record of who wrote what has to survive the handoff, because it is what decides who
+is allowed to review it.
 
 Three hooks enforce the mechanical part of this, and stay silent in repos without a
 `.claude/praxis.json`. `Stop` refuses to end a turn while the branch has commits newer
