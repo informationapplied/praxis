@@ -247,6 +247,8 @@ priority) after the feature merges, and work it on its own branch.
 - Claim before you work — the branch ref and a draft PR, not the assignee field.
 - Never leave an issue assigned and silent — the handoff comment stays current, or the issue goes back to the takeable status.
 - Every change has an issue — even unplanned fixes and maintenance get tracked.
+- Bump the version when a plugin changes — installed copies are cached by version, so a merge with
+  an unchanged version reaches nobody and says nothing about it.
 - Paths are portable — never commit hard-coded absolute or machine-specific paths in
   configs, scripts, or code. Use relative paths from the repo root, or a variable the
   environment provides (`$CLAUDE_PROJECT_DIR`, `${CLAUDE_PLUGIN_ROOT}`). An absolute
