@@ -35,7 +35,17 @@ ceremony to the change.
 
 ### 1. Find the next issue
 Query the `tracker` (and `board`, if configured) for the highest-priority unstarted
-item. Present it and confirm before starting.
+item **whose dependencies are all met** — an issue you would immediately be blocked on
+is not the next issue. Take one that is well enough defined to deliver on its own: if it
+does not say what done looks like, scope it (step 2) before starting it, or pick another.
+
+Claim it by assigning yourself and moving it to the in-progress status. If you are acting
+on someone's behalf, assign them. Assign before you start, not when you finish, so the
+board shows the work as taken. Assignment is a convention, not a lock — if two workers
+land on the same issue, whoever moved it first keeps it and the other picks again.
+
+With a human in the loop, present the issue and confirm before starting. Working
+autonomously, just take it.
 
 ### 2. Scope
 - If `board`: move the issue to the scoping status.
@@ -64,6 +74,9 @@ item. Present it and confirm before starting.
 ### 4. Implement
 Work entirely in the worktree. Commit between changes — after implementation, after
 review fixes, after test fixes — not one batched commit. Reference the issue number.
+
+Keep the handoff comment current as you go (below). Update it whenever you commit or
+make a decision you would have to explain to whoever takes over.
 
 ### 5. Self-review (before the PR, not after)
 Review the full diff (`git diff <base>..HEAD`). Check for bugs, missing edge cases,
@@ -110,6 +123,41 @@ Push the branch and open a PR whose body tells the story: a summary of changes, 
 - Close the issue explicitly with a summary of what was done.
 - If `board`: move the issue to the done status.
 
+## Handing off unfinished work
+
+Work stops mid-issue all the time — a session hits its limit, a worker is interrupted,
+priorities move. What must not happen is an issue left looking active with nothing
+recording where it got to.
+
+**Keep one handoff comment current.** While an issue is assigned to you, maintain a
+single comment on it, edited in place rather than re-posted. Start it with the line
+`<!-- praxis:handoff -->` so tooling can find it. It says:
+
+- what is done and committed
+- what is in progress, and where you left it
+- what you would do next
+- anything you learned that the diff does not show — a dead end, a surprising
+  constraint, a decision and why
+
+**Update it as you go, not at the end.** By the time a session is out of budget it has
+no room left to write anything thoughtful. A handoff refreshed at each commit means an
+abrupt end costs one step, not the whole session. This matters more than any warning
+signal: nothing reliably tells you that you are about to be cut off.
+
+**When you stop before the work is deliverable:** update the comment, unassign yourself,
+and move the issue back to the ready status. Leave the branch pushed — it is the real
+record of the work, and the next worker should read it rather than trust prose.
+
+**Picking up someone else's work:** the branch is authoritative; the handoff comment is
+orientation. Treat anything past the last commit as lost. If an issue is assigned to a
+worker that has plainly stopped, unassign them and take it — the branch protects the
+work, so there is nothing to negotiate.
+
+Three hooks enforce the mechanical part of this, and stay silent in repos without a
+`.claude/praxis.json`. `Stop` refuses to end a turn while the branch has commits newer
+than the handoff comment. `PreCompact` warns when context is about to be summarised.
+`SessionEnd` flags the issue if a session dies mid-work. All of them fail open.
+
 ## Escape hatches
 
 **Quick work without a worktree** (docs, process, config): skip the worktree, but still
@@ -133,6 +181,8 @@ priority) after the feature merges, and work it on its own branch.
 - The PR tells the story — review findings and test results matter as much as the diff.
 - Docs before close — architecture docs reflect the current state before an issue closes.
 - One issue at a time — finish the lifecycle before starting the next.
+- Take only unblocked work — assign yourself when you start, not when you finish.
+- Never leave an issue assigned and silent — the handoff comment stays current, or the issue goes back to ready.
 - Every change has an issue — even unplanned fixes and maintenance get tracked.
 - Paths are portable — never commit hard-coded absolute or machine-specific paths in
   configs, scripts, or code. Use relative paths from the repo root, or a variable the
