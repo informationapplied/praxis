@@ -6,8 +6,9 @@ description: Use when starting, continuing, or finishing any tracked unit of wor
 # The praxis workflow
 
 An issue-driven lifecycle: every change maps to a tracked issue and moves through
-scope → build → self-review → PR → merge → close, in an isolated worktree, reviewed
-before the PR is opened. This skill adapts to the repo. Read the config first.
+claim → build → self-review → review → merge → close, in an isolated worktree, with the
+PR opened as a draft at the claim and reviewed before it is marked ready. This skill
+adapts to the repo. Read the config first.
 
 ## Step 0 — Load the config
 
@@ -39,18 +40,39 @@ Query the `tracker` (and `board`, if configured) for the highest-priority unstar
 the next issue. With a `board`, take from the status step 2 approves into: that is where
 takeable work sits, and anything earlier has not been scoped yet.
 
+Where several issues tie at the top priority, choose among them at random. Workers
+applying the same rule to the same board otherwise converge on the same issue.
+
 Take one that is well enough defined to deliver on its own. If it does not say what done
-looks like, scope it (step 2) before starting it, or pick another.
+looks like, scope it (step 2) — but only if scoping is yours to do; see the note there.
 
-Claim it by assigning yourself and moving it to the in-progress status. If you are acting
-on someone's behalf, assign them. Assign before you start, not when you finish, so the
-board shows the work as taken. Assignment is a convention, not a lock — if two workers
-land on the same issue, whoever moved it first keeps it and the other picks again.
+**Claim it before doing any work**, in two steps:
 
-With a human in the loop, present the issue and confirm before starting. Working
+1. Create the branch ref at the base commit: `git push origin <base-sha>:refs/heads/<branch>`,
+   named per `branchPattern`. Ref creation is an atomic compare-and-swap — exactly one
+   worker succeeds and the rest are rejected in under a second, before anyone has spent
+   effort.
+2. Open a **draft PR** from that branch whose body closes the issue.
+
+Then assign yourself — or the person you are acting for — and move the issue to the
+in-progress status. Assignment and the board make the claim visible; they do not grant
+it. The assignee field cannot: workers may share an account, and an agent acting for a
+person assigns that person, so "who holds this?" is not answerable from the board alone.
+
+The draft PR is the durable half. A branch ref can be deleted and recreated, which would
+let a second worker claim an issue the first still holds; the PR survives that, records
+who claimed and when, and is what the handoff hooks read to link a branch to its issue —
+from the first commit rather than from the end of the lifecycle.
+
+With a human in the loop, present the issue and confirm before claiming. Working
 autonomously, just take it.
 
 ### 2. Scope
+**Scoping may not be yours to do.** If the repo reserves `prd.path`, specs or plans to a
+particular role — check its AGENTS.md or equivalent — a worker that finds an unready
+issue says so on the issue and takes something else, rather than scoping it itself. Only
+scope where the repo permits you to edit those files. The steps below assume it does.
+
 - If `board`: move the issue to the scoping status.
 - Decide whether the change alters **what the product does** (vs. how it's built). If
   yes and `prd` is configured, update `prd.path` and treat this as a PRD change.
@@ -61,17 +83,20 @@ autonomously, just take it.
 - If `board`: move to the approved status when scoping is complete.
 
 ### 3. Start work
-- **Sync main first** (both paths below). Before the worktree is created, `git fetch
-  origin` and `git pull --ff-only` on main, and verify it advanced — so the branch starts
-  from current main, not a stale local copy. A stale base starts the work behind and
-  invites conflicts at merge.
+The branch already exists — you created it as the claim in step 1, and the base commit
+was fixed then. This step checks it out; it does not create it.
+
+- **Sync main first.** `git fetch origin` and `git pull --ff-only` on the default branch,
+  and verify it advanced, so you are reasoning about current state rather than a stale
+  local copy. Claim from current main in step 1 for the same reason: a stale base starts
+  the work behind and invites conflicts at merge.
 - **If `devflow: true`** and the devflow MCP server is connected: call
-  `start_work_session` — it sets status to in-progress, creates the worktree + branch,
-  logs activity start, adds the in-progress label, and returns an `activity_id`. **Save
-  the `activity_id` for step 9.**
-- **Otherwise (manual path):** create a git worktree as a sibling directory on a branch
-  named per `branchPattern`; if `board`, move the issue to the in-progress status by
-  hand; skip activity logging. Never instruct devflow tool calls when `devflow` is false.
+  `start_work_session` — it logs activity start, adds the in-progress label, and returns
+  an `activity_id`. **Save the `activity_id` for step 9.** Where it would create a branch
+  or set status, the claim has already done both; do not let it create a second branch.
+- **Otherwise (manual path):** add a git worktree as a sibling directory on the branch you
+  claimed — `git worktree add <path> <branch>`, with no `-b`. Skip activity logging. Never
+  instruct devflow tool calls when `devflow` is false.
 - All implementation happens in the worktree, not the main clone.
 
 ### 4. Implement
@@ -81,7 +106,7 @@ review fixes, after test fixes — not one batched commit. Reference the issue n
 Keep the handoff comment current as you go (below). Update it whenever you commit or
 make a decision you would have to explain to whoever takes over.
 
-### 5. Self-review (before the PR, not after)
+### 5. Self-review (before the PR is ready, not after)
 Review the full diff (`git diff <base>..HEAD`). Check for bugs, missing edge cases,
 circular imports, fields not threaded through every layer, lint errors, and hard-coded
 absolute paths (anything machine- or user-specific, e.g. `/Users/<name>/...`). Fix findings
@@ -95,9 +120,16 @@ Update architecture docs for any architectural change **before pushing**. Add an
 Run tests for regressions. Write targeted tests for new testable logic. Lint changed
 files. Exercise edge cases and fallback behavior.
 
-### 8. Push and open the PR
-Push the branch and open a PR whose body tells the story: a summary of changes, the
-**review findings** from step 5 and how they were fixed, and **test results**.
+### 8. Mark the PR ready
+The PR already exists — it was opened as a draft when you claimed the issue. Push the
+branch and fill its body out into the story: a summary of changes, the **review
+findings** from step 5 and how they were fixed, and **test results**. Then mark it ready
+for review.
+
+Do not force-push to integrate the default branch. A work branch may be held by a
+successor or carry a reviewer's commit, and a force-push silently discards them; merge
+the default branch in instead. Repos that enforce this deny force-push on work branches,
+in which case the push simply fails.
 
 ### 9. Merge and clean up
 - Squash merge to the main branch.
@@ -208,11 +240,11 @@ priority) after the feature merges, and work it on its own branch.
 
 ## Key principles
 - Start from current main — always sync main before branching or committing, never from a stale base.
-- Review before PR, not after — catch bugs before they're visible.
+- Review before the PR is ready, not after — catch bugs before anyone else sees them.
 - The PR tells the story — review findings and test results matter as much as the diff.
 - Docs before close — architecture docs reflect the current state before an issue closes.
 - One issue at a time — finish the lifecycle before starting the next.
-- Take only unblocked work — assign yourself when you start, not when you finish.
+- Claim before you work — the branch ref and a draft PR, not the assignee field.
 - Never leave an issue assigned and silent — the handoff comment stays current, or the issue goes back to the takeable status.
 - Every change has an issue — even unplanned fixes and maintenance get tracked.
 - Paths are portable — never commit hard-coded absolute or machine-specific paths in
