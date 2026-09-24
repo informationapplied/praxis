@@ -1,7 +1,7 @@
 {
   "name": "praxis",
   "description": "A portable way of working with Claude Code: issue-driven lifecycle, worktrees, review-before-PR, PRD-linked requirements. Firm/project specifics come from a local .claude/praxis.json, not the plugin.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "Glenn King",
     "email": "glenn@informationapplied.com"
